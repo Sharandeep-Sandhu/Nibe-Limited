@@ -47,18 +47,29 @@ rm -f /etc/nginx/sites-enabled/default
 nginx -t && systemctl reload nginx
 ```
 
-Visit `http://200.97.168.12`. The server cannot provide a trusted HTTPS certificate for a bare IP through the usual Let's Encrypt workflow. For public production use, point your domain's `A` records (`@` and, if desired, `www`) to `200.97.168.12`, then change `server_name _;` in `/etc/nginx/sites-available/nibe-limited` to your domain names and reload Nginx.
+Visit `http://200.97.168.12` to check the initial deployment. To attach `nibelimited.com`, open the DNS settings at the domain registrar and create these records (remove conflicting records for the same names):
+
+| Type | Name | Value | TTL |
+| --- | --- | --- | --- |
+| A | `@` | `200.97.168.12` | Default |
+| A | `www` | `200.97.168.12` | Default |
+
+If the domain uses custom nameservers, edit DNS at the provider hosting those nameservers. Wait for DNS to resolve to `200.97.168.12`. Then install the updated config from the project (or edit `/etc/nginx/sites-available/nibe-limited` so its `server_name` is `nibelimited.com www.nibelimited.com`) and reload:
+
+```bash
+nginx -t && systemctl reload nginx
+```
 
 ## 3. Enable HTTPS for a domain
 
-After DNS points to the VPS and has propagated, run:
+After both domain names resolve to the VPS and ports 80 and 443 are allowed, run:
 
 ```bash
 apt install -y certbot python3-certbot-nginx
-certbot --nginx -d example.com -d www.example.com
+certbot --nginx -d nibelimited.com -d www.nibelimited.com
 ```
 
-Replace the example names with your actual domain. Certbot configures the certificate and renewal. Keep ports 80 and 443 open.
+Certbot configures the certificate and renewal. Keep ports 80 and 443 open. Both `http://nibelimited.com` and `http://www.nibelimited.com` should be reachable before requesting the certificate.
 
 ## Updating the site
 
